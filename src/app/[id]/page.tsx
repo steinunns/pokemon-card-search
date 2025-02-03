@@ -12,13 +12,10 @@ interface PokemonCardDetailsResponse {
   data: PokemonCardModel;
 }
 
-export default async function PokemonCardDetailsPage({
-  params,
-}: {
+export default async function PokemonCardDetailsPage(props: {
   params: { id: string };
 }) {
-  // ✅ Explicitly define the type
-  const { id } = params;
+  const { id } = props.params; // ✅ Fix by correctly extracting `id`
 
   // Check if id exists before making the request
   if (!id) {
