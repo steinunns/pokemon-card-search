@@ -12,15 +12,11 @@ interface PokemonCardDetailsResponse {
   data: PokemonCardModel;
 }
 
-// Define props type correctly (params is NOT a promise)
-interface PokemonCardDetailsPageProps {
-  params: { id: string };
-}
-
-// ✅ Use the interface in the function signature
 export default async function PokemonCardDetailsPage({
   params,
-}: PokemonCardDetailsPageProps) {
+}: {
+  params: { id: string };
+}) {
   const { id } = params;
 
   // Check if id exists before making the request
