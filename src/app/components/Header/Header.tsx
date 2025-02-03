@@ -1,3 +1,4 @@
+import React from "react"; // ✅ Required for TypeScript in Next.js 15+
 import Link from "next/link";
 import styles from "./Header.module.css";
 
