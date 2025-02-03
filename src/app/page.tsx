@@ -1,95 +1,95 @@
-import Image from "next/image";
+// Import styles and necessary components/types
 import styles from "./page.module.css";
+import type { PokemonCardModel } from "./types";
+import { PokemonCardList } from "./components/PokemonCardList";
+import { API_BASE_URL } from "./constants";
+import Link from "next/link";
+import { SearchSection } from "./components/SearchSection/SearchSection";
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+// Define how many Pokémon cards to fetch per request
+const PAGE_SIZE = 12;
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+// Define the expected response structure from the API
+interface PokemonCardListResponse {
+  count: number; // Total number of results in the API
+  data: PokemonCardModel[]; // Array of Pokémon cards
+  page: number; // Current page number
+  pageSize: number; // Number of items per page
+  totalCount: number; // Total number of Pokémon cards available
+}
+
+// ✅ Fix `searchParams` type (it's an object, not a Promise)
+interface PokemonCardListPageProps {
+  searchParams: {
+    page?: string;
+    name?: string;
+  };
+}
+
+// Next.js uses async functions for server-side fetching
+export default async function PokemonCardListPage({
+  searchParams,
+}: PokemonCardListPageProps) {
+  // ✅ Remove `await` from searchParams
+  const { page = "1", name = "" } = searchParams;
+  const currentPage = Number(page);
+
+  try {
+    // Debugging: Check if API_BASE_URL is correct
+    console.log("🔍 Fetching from:", API_BASE_URL);
+
+    // Fetch Pokémon card data from the API with the correct query parameter
+    const response = await fetch(
+      `${API_BASE_URL}?pageSize=${PAGE_SIZE}&page=${currentPage}&q=name:*${name}*`,
+      {
+        cache: "no-store", // Ensures fresh data is fetched every time
+      }
+    );
+
+    // Check if the API response is successful (status code 200-299)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch Pokémon cards: ${response.statusText}`);
+    }
+
+    // Parse the JSON response
+    const json: PokemonCardListResponse = await response.json();
+
+    // Get the total number of pages
+    const totalPages = Math.ceil(json.totalCount / PAGE_SIZE);
+
+    return (
+      <>
+        <div className={styles.paginationContainer}>
+          <SearchSection />
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+        {/* Main container wrapping the card list */}
+        <div className={styles.container}>
+          {/* Render the list of Pokémon cards */}
+          <PokemonCardList cards={json.data} />
+        </div>
+
+        {/* Pagination container appears below the card list */}
+        <div className={styles.paginationContainer}>
+          {/* Previous Page Button */}
+          {currentPage > 1 && (
+            <Link href={`/?page=${currentPage - 1}`}>Previous</Link>
+          )}
+
+          {/* Page Number Display */}
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          {/* Next Page Button */}
+          {currentPage < totalPages && (
+            <Link href={`/?page=${currentPage + 1}`}>Next</Link>
+          )}
+        </div>
+      </>
+    );
+  } catch (error) {
+    console.error("Error fetching Pokémon cards:", error);
+    return <p className={styles.error}>Failed to load Pokémon cards.</p>;
+  }
 }
