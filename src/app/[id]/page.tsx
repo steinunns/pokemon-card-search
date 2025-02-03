@@ -20,8 +20,11 @@ interface PokemonCardDetailsPageProps {
 // Next.js dynamic page fetching based on the `id` param
 export default async function PokemonCardDetailsPage({
   params,
-}: PokemonCardDetailsPageProps) {
-  const { id } = params; // Correctly extract id
+}: {
+  params: { id: string };
+}) {
+  // ✅ Explicitly declare type in function signature
+  const { id } = params;
 
   // Check if id exists before making the request
   if (!id) {
