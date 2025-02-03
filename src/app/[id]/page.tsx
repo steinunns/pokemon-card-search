@@ -17,6 +17,7 @@ export default async function PokemonCardDetailsPage({
 }: {
   params: { id: string };
 }) {
+  // ✅ Explicitly define the type
   const { id } = params;
 
   // Check if id exists before making the request
